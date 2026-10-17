@@ -52,21 +52,23 @@ jobs:
           echo "code=$VC" >> "$GITHUB_OUTPUT"
           echo "name=$VN" >> "$GITHUB_OUTPUT"
 
-      - name: Build APK (full debug)
+      - name: Decode signing keystore
+        run: |
+          echo "${{ secrets.NUVIO_RELEASE_KEYSTORE_B64 }}" | base64 -d > nuviotv.jks
+          echo "NUVIO_RELEASE_STORE_FILE=$(pwd)/nuviotv.jks" >> "$GITHUB_ENV"
+
+      - name: Build APK (full debug, signed)
         run: ./gradlew --no-daemon :app:assembleFullDebug
 
-      - name: Delete existing release if tag exists
+      - name: Upload APK to draft release for review
         run: |
+          # Release policy: builds land as DRAFT. Owner verifies install + seeds,
+          # then publishes the release and bumps minVersionCode in min_version.json.
           gh release delete "v${{ steps.version.outputs.name }}" --yes || true
-          git push origin :refs/tags/v${{ steps.version.outputs.name }} || true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload APK to GitHub Release
-        run: |
           gh release create "v${{ steps.version.outputs.name }}" \
             --title "Nubio v${{ steps.version.outputs.name }}" \
-            --notes "Automated build of upstream NuvioTV main (merged $(date -u +%Y-%m-%d))." \
+            --notes "Automated build of upstream NuvioTV main (merged $(date -u +%Y-%m-%d)). Draft — review before publishing." \
+            --draft \
             app/build/outputs/apk/full/debug/*.apk
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
