@@ -1142,6 +1142,36 @@ open class MainActivity : ComponentActivity() {
                         showBanner = updateState.showBanner && currentRoute?.startsWith("player/") != true
                     )
 
+                    // Forced-update gate (Nubio fork, additive). On "Update Now"
+                    // trigger a fresh check; when the updater finds a release it
+                    // enables the download button — we start the download and
+                    // installation automatically.
+                    var gateAutoDownloaded by remember { mutableStateOf(false) }
+                    val gateState by com.nuvio.tv.core.setup.UpdateGateBus.state.collectAsState()
+                    LaunchedEffect(gateState) {
+                        if (gateState.blocked) updateViewModel.checkForUpdates(force = true, showNoUpdateFeedback = false)
+                    }
+                    LaunchedEffect(updateState.update) {
+                        if (gateState.blocked &&
+                            !gateAutoDownloaded &&
+                            updateState.update != null
+                        ) {
+                            gateAutoDownloaded = true
+                            updateViewModel.downloadUpdate()
+                        }
+                    }
+                    if (gateState.blocked) {
+                        com.nuvio.tv.core.setup.UpdateGateBlockedDialog(
+                            message = gateState.message,
+                            isDownloading = updateState.isDownloading,
+                            downloadProgress = updateState.downloadProgress,
+                            onUpdateNow = {
+                                updateViewModel.checkForUpdates(force = true, showNoUpdateFeedback = false)
+                                updateViewModel.downloadUpdate()
+                            }
+                        )
+                    }
+
                     UpdateBannerHost(
                         state = updateBannerState,
                         onDismissBanner = updateViewModel::dismissBanner,

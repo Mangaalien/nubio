@@ -50,6 +50,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
     @Inject lateinit var simklAnimeIdPreferenceHolder: SimklAnimeIdPreferenceHolder
     @Inject lateinit var serverUserStateProjection: ServerUserStateProjection
     @Inject lateinit var serverMatcher: ServerMatcher
+    @Inject lateinit var defaultSetupHooks: com.nuvio.tv.core.setup.DefaultSetupHooks
 
     companion object {
         /**
@@ -85,6 +86,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         SentryInitializer.start(this, sentrySettingsDataStore)
         PluginRuntimeHooks.onApplicationCreate(this)
+        defaultSetupHooks.onApplicationCreate(this)
         androidTvChannelSyncService.start()
         serverUserStateProjection.start()
         serverMatcher.start()
