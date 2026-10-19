@@ -55,6 +55,10 @@ jobs:
           echo "NUVIO_RELEASE_STORE_FILE=$(pwd)/nuviotv.jks" >> "$GITHUB_ENV"
 
       - name: Build APK (full debug, signed)
+        env:
+          NUVIO_RELEASE_KEY_ALIAS: ${{ secrets.NUVIO_RELEASE_KEY_ALIAS }}
+          NUVIO_RELEASE_KEY_PASSWORD: ${{ secrets.NUVIO_RELEASE_KEY_PASSWORD }}
+          NUVIO_RELEASE_STORE_PASSWORD: ${{ secrets.NUVIO_RELEASE_STORE_PASSWORD }}
         run: ./gradlew --no-daemon :app:assembleFullDebug
 
       - name: Upload APK to draft release for review
