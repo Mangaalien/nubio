@@ -65,8 +65,8 @@ jobs:
         run: |
           # Release policy: builds land as DRAFT. Owner verifies install + seeds,
           # then publishes the release and bumps minVersionCode in min_version.json.
-          gh release delete "v${{ steps.version.outputs.name }}" --yes || true
-          gh release create "v${{ steps.version.outputs.name }}" \
+          gh release delete --repo Mangaalien/nubio "v${{ steps.version.outputs.name }}" --yes || true
+          gh release create --repo Mangaalien/nubio "v${{ steps.version.outputs.name }}" \
             --title "Nubio v${{ steps.version.outputs.name }}" \
             --notes "Automated build of upstream NuvioTV main (merged $(date -u +%Y-%m-%d)). Draft — review before publishing." \
             --draft \
